@@ -1,1 +1,213 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --sp-bg: #eef0f2;
+  --sp-surface: #ffffff;
+  --sp-surface2: #f6f7f8;
+  --sp-ink: #1a1d23;
+  --sp-muted: #646c78;
+  --sp-faint: #8b93a0;
+  --sp-line: #e3e6ea;
+  --sp-line2: #d3d8de;
+  --sp-brand-soft: #e0f1f5;
+  --sp-side: #15181d;
+  --sp-side2: #1c2026;
+  --sp-dot: #d8dde2;
+}
+.dark {
+  --sp-bg: #0e1013;
+  --sp-surface: #16191e;
+  --sp-surface2: #1b1f25;
+  --sp-ink: #e8eaee;
+  --sp-muted: #98a1ad;
+  --sp-faint: #6d7683;
+  --sp-line: #262b33;
+  --sp-line2: #333a44;
+  --sp-brand-soft: #12333c;
+  --sp-dot: #262c34;
+}
+
+@theme inline {
+  --color-bg: var(--sp-bg);
+  --color-surface: var(--sp-surface);
+  --color-surface2: var(--sp-surface2);
+  --color-ink: var(--sp-ink);
+  --color-muted: var(--sp-muted);
+  --color-faint: var(--sp-faint);
+  --color-line: var(--sp-line);
+  --color-line2: var(--sp-line2);
+  --color-side: var(--sp-side);
+  --color-side2: var(--sp-side2);
+  --color-brand: #0e7490;
+  --color-brand-hi: #1293b6;
+  --color-brand-soft: var(--sp-brand-soft);
+  --color-magenta: #d81159;
+  --color-amber: #e8a200;
+  --color-ok: #178a4c;
+  --color-ok-soft: #e2f3e9;
+  --color-warn: #b45309;
+  --color-warn-soft: #fbeedd;
+  --color-danger: #d33131;
+  --color-danger-soft: #fbe7e7;
+  --font-display: "Space Grotesk", "Manrope", sans-serif;
+  --font-body: "Manrope", "Segoe UI", sans-serif;
+}
+.dark {
+  --tw-color-ok-soft: #14291d;
+}
+
+html,
+body {
+  height: 100%;
+}
+body {
+  background: var(--sp-bg);
+  color: var(--sp-ink);
+  font-family: var(--font-body);
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #0e749033;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--sp-line2);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* halftone dot layer — print-shop signature texture */
+.dotgrid {
+  background-image: radial-gradient(var(--sp-dot) 1px, transparent 1.15px);
+  background-size: 18px 18px;
+}
+.dotgrid-side {
+  background-image: radial-gradient(#ffffff14 1px, transparent 1.15px);
+  background-size: 16px 16px;
+}
+
+.kbd {
+  font-family: var(--font-display);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 1px solid var(--sp-line2);
+  border-bottom-width: 2px;
+  background: var(--sp-surface);
+  color: var(--sp-muted);
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.96) translateY(6px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes barGrow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 0 currentColor; opacity: 1; }
+  50% { box-shadow: 0 0 0 4px transparent; opacity: 0.75; }
+}
+.anim-in { animation: fadeUp 0.32s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.anim-fade { animation: fadeIn 0.2s ease both; }
+.anim-modal { animation: scaleIn 0.22s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.anim-toast { animation: slideRight 0.28s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+.anim-bar { transform-origin: bottom; animation: barGrow 0.6s cubic-bezier(0.2, 0.7, 0.3, 1) both; }
+
+.card {
+  background: var(--sp-surface);
+  border: 1px solid var(--sp-line);
+  border-radius: 12px;
+}
+.hoverable {
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+.hoverable:hover {
+  border-color: var(--sp-line2);
+  box-shadow: 0 4px 16px -8px rgba(10, 20, 30, 0.18);
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+}
+input[type="number"]::-webkit-inner-spin-button {
+  opacity: 0.4;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Print: only the .print-area is visible */
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+  .print-area {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    max-height: none !important;
+    overflow: visible !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .fixed {
+    position: absolute !important;
+    overflow: visible !important;
+    inset: auto !important;
+  }
+  main,
+  .overflow-y-auto,
+  .overflow-x-auto {
+    overflow: visible !important;
+  }
+  aside,
+  header {
+    display: none !important;
+  }
+}
