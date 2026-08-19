@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { StoreProvider, useStore } from "./lib/store";
 import { ToastProvider } from "./components/ui";
+import { initPWA } from "./lib/pwa";
 import { Shell } from "./components/layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -41,6 +42,7 @@ function Router() {
 }
 
 export default function App() {
+  useEffect(() => { initPWA(); }, []);
   return (
     <StoreProvider>
       <ToastProvider>

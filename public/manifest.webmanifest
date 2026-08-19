@@ -1,0 +1,34 @@
+{
+  "name": "Sani Print POS — Kasir & Manajemen Percetakan",
+  "short_name": "Sani Print",
+  "description": "Point of Sale dan manajemen bisnis percetakan digital: order, produksi, inventori, piutang, dan laporan.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#15181d",
+  "theme_color": "#15181d",
+  "lang": "id",
+  "categories": ["business", "productivity", "finance"],
+  "icons": [
+    {
+      "src": "https://image.qwenlm.ai/generated-images/48e4e484-64a7-4974-9e51-108978e4aa01/_result.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://image.qwenlm.ai/generated-images/48e4e484-64a7-4974-9e51-108978e4aa01/_result.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
