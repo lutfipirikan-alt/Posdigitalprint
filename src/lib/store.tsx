@@ -6,17 +6,18 @@ import type {
 import { STATUS_META } from "./types";
 import { buildSeed, buildEmpty } from "./seed";
 import { hashPass, uid, dayKey } from "./format";
+import { safeGet, safeSet, safeRemove } from "./storage";
 
 const DB_KEY = "saniprint-db-v3";
 const SES_KEY = "saniprint-session";
 
 function loadDB(): DB {
   try {
-    const raw = localStorage.getItem(DB_KEY);
+    const raw = safeGet(DB_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DB;
       if (parsed.version === 3) {
-        localStorage.setItem("saniprint-setup", "1"); // pengguna lama: lewati onboarding
+        safeSet("saniprint-setup", "1"); // pengguna lama: lewati onboarding
         return parsed;
       }
     }
@@ -169,14 +170,14 @@ function pushPayJournal(d: DB, o: Order, amount: number, method: PayMethod, date
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [db, setDb] = useState<DB>(loadDB);
-  const [userId, setUserId] = useState<string | null>(() => localStorage.getItem(SES_KEY));
+  const [userId, setUserId] = useState<string | null>(() => safeGet(SES_KEY));
   const [nav, setNav] = useState<NavState>({ page: "dashboard" });
   const [theme, setThemeState] = useState<"light" | "dark">(() => (document.documentElement.classList.contains("dark") ? "dark" : "light"));
   const ref = useRef(db);
   ref.current = db;
 
   useEffect(() => {
-    try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch { /* penuh */ }
+    safeSet(DB_KEY, JSON.stringify(db));
   }, [db]);
 
   const mutate = (fn: (d: DB) => void) => {
@@ -195,7 +196,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTheme: (t) => {
       setThemeState(t);
       document.documentElement.classList.toggle("dark", t === "dark");
-      localStorage.setItem("sp-theme", t);
+      safeSet("sp-theme", t);
     },
     login: (username, pass) => {
       const u = ref.current.users.find((x) => x.username === username.toLowerCase().trim());
@@ -203,18 +204,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (!u.active) return "Akun dinonaktifkan";
       if (u.passHash !== hashPass(pass)) return "Password salah";
       setUserId(u.id);
-      localStorage.setItem(SES_KEY, u.id);
+      safeSet(SES_KEY, u.id);
       setNav({ page: "dashboard" });
       mutate((d) => log(d, u.id, "Login", `${u.name} masuk ke sistem`));
       return null;
     },
-    logout: () => { setUserId(null); localStorage.removeItem(SES_KEY); },
+    logout: () => { setUserId(null); safeRemove(SES_KEY); },
     resetDemo: () => { setDb(buildSeed()); setNav({ page: "dashboard" }); },
     initData: (mode, startCash) => {
       setDb(mode === "demo" ? buildSeed() : buildEmpty(startCash ?? 0));
-      localStorage.setItem("saniprint-setup", "1");
+      safeSet("saniprint-setup", "1");
       setUserId(null);
-      localStorage.removeItem(SES_KEY);
+      safeRemove(SES_KEY);
       setNav({ page: "dashboard" });
     },
 
