@@ -164,6 +164,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <span className="kbd">Ctrl K</span>
           </button>
           <div className="ml-auto flex items-center gap-1.5">
+            {db.mode === "live" ? (
+              <span title="Data operasional: 0 transaksi awal, semua yang tercatat adalah input Anda."
+                className="hidden items-center gap-1.5 rounded-full border border-ok/30 bg-ok-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ok sm:flex">
+                <span className="h-1.5 w-1.5 rounded-full bg-ok" /> Operasional
+              </span>
+            ) : (
+              <button title="Data contoh aktif — klik untuk beralih ke data kosong / operasional."
+                onClick={() => user?.role === "admin" ? setResetModal("empty") : toast.push({ title: "Data contoh aktif", desc: "Minta Administrator untuk beralih ke mode operasional.", kind: "info" })}
+                className="hidden items-center gap-1.5 rounded-full border border-warn/30 bg-warn-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-warn transition-transform hover:scale-[1.03] sm:flex">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-warn" /> Data Contoh
+              </button>
+            )}
             <span className="mr-1 hidden text-[12px] font-semibold text-muted md:block">{fmtDate(Date.now())}</span>
             {/* notifications */}
             <div className="relative">

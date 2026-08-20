@@ -217,6 +217,7 @@ export interface Activity { id: ID; date: number; userId: ID; action: string; de
 /* ---------- DB root ---------- */
 export interface DB {
   version: number;
+  mode: "demo" | "live";
   startCash: number;
   users: User[];
   customers: Customer[];

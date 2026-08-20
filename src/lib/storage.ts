@@ -18,5 +18,5 @@ export function safeRemove(key: string): void {
   } catch { /* abaikan */ }
 }
 export function safeClearAppData(): void {
-  ["saniprint-db-v3", "saniprint-session", "saniprint-setup", "sp-theme"].forEach(safeRemove);
+  ["saniprint-db-v4", "saniprint-db-v3", "saniprint-session", "saniprint-setup-v2", "saniprint-setup", "sp-theme"].forEach(safeRemove);
 }

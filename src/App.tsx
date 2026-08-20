@@ -22,7 +22,7 @@ import People from "./pages/People";
 
 function Router() {
   const { user, nav } = useStore();
-  const [firstRun, setFirstRun] = useState(() => !safeGet("saniprint-setup"));
+  const [firstRun, setFirstRun] = useState(() => !safeGet("saniprint-setup-v2"));
   if (firstRun) return <Setup onDone={() => setFirstRun(false)} />;
   if (!user) return <Login />;
   const page = (() => {

@@ -397,7 +397,8 @@ export function buildSeed(): DB {
   });
 
   return {
-    version: 3,
+    version: 4,
+    mode: "demo",
     startCash: 12_500_000,
     users, customers, suppliers, products, finishings, inventory, invTx,
     orders: orders.sort((a, b) => b.createdAt - a.createdAt),
@@ -419,6 +420,7 @@ export function buildEmpty(startCash = 0): DB {
   const demo = buildSeed();
   return {
     ...demo,
+    mode: "live",
     startCash,
     users: demo.users.filter((u) => u.id === "u1"), // hanya admin; karyawan lain ditambahkan sendiri
     customers: [],

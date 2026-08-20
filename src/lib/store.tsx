@@ -8,16 +8,17 @@ import { buildSeed, buildEmpty } from "./seed";
 import { hashPass, uid, dayKey } from "./format";
 import { safeGet, safeSet, safeRemove } from "./storage";
 
-const DB_KEY = "saniprint-db-v3";
+const DB_KEY = "saniprint-db-v4";
 const SES_KEY = "saniprint-session";
+export const SETUP_KEY = "saniprint-setup-v2";
 
 function loadDB(): DB {
   try {
     const raw = safeGet(DB_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DB;
-      if (parsed.version === 3) {
-        safeSet("saniprint-setup", "1"); // pengguna lama: lewati onboarding
+      if (parsed.version === 4) {
+        safeSet(SETUP_KEY, "1");
         return parsed;
       }
     }
@@ -213,7 +214,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     resetDemo: () => { setDb(buildSeed()); setNav({ page: "dashboard" }); },
     initData: (mode, startCash) => {
       setDb(mode === "demo" ? buildSeed() : buildEmpty(startCash ?? 0));
-      safeSet("saniprint-setup", "1");
+      safeSet(SETUP_KEY, "1");
       setUserId(null);
       safeRemove(SES_KEY);
       setNav({ page: "dashboard" });
