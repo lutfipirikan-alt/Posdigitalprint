@@ -73,7 +73,17 @@ export default function Orders() {
               })}
             </tbody>
           </table>
-          {rows.length === 0 && <p className="py-14 text-center text-[13px] text-faint">Tidak ada pesanan yang cocok dengan filter.</p>}
+          {rows.length === 0 && (
+            db.orders.length === 0 ? (
+              <div className="anim-in py-16 text-center">
+                <p className="font-display text-[15px] font-bold">Belum ada pesanan — 0 transaksi tercatat</p>
+                <p className="mx-auto mt-1 max-w-sm text-[12.5px] text-muted">Semua data dimulai dari nol. Buat penjualan pertama Anda dari halaman Kasir.</p>
+                <Btn className="mt-4" onClick={() => navigate("pos")}>Buka Kasir (POS)</Btn>
+              </div>
+            ) : (
+              <p className="py-14 text-center text-[13px] text-faint">Tidak ada pesanan yang cocok dengan filter.</p>
+            )
+          )}
         </div>
       </div>
 

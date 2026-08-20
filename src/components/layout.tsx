@@ -8,7 +8,8 @@ import { canInstall, isStandalone, onInstallChange, promptInstall } from "../lib
 import type { NavState, Page } from "../lib/types";
 import { ROLE_META } from "../lib/types";
 import { fmtDate, timeAgo } from "../lib/format";
-import { Chip, Logo, useToast } from "./ui";
+import { Btn, Chip, Field, Input, Logo, Modal, useToast } from "./ui";
+import { AlertTriangle, FlaskConical, Database } from "lucide-react";
 
 const NAV: { group: string; items: { page: Page; label: string; icon: React.ReactNode }[] }[] = [
   {
@@ -46,12 +47,14 @@ const NAV: { group: string; items: { page: Page; label: string; icon: React.Reac
 ];
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  const { user, nav, navigate, theme, setTheme, logout, resetDemo, db, markNotifs } = useStore();
+  const { user, nav, navigate, theme, setTheme, logout, resetDemo, initData, db, markNotifs } = useStore();
   const toast = useToast();
   const [searchOpen, setSearchOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [resetModal, setResetModal] = useState<null | "demo" | "empty">(null);
+  const [resetCash, setResetCash] = useState(0);
   const [installReady, setInstallReady] = useState(canInstall());
   const [standalone, setStandalone] = useState(isStandalone());
 
@@ -161,6 +164,18 @@ export function Shell({ children }: { children: React.ReactNode }) {
             <span className="kbd">Ctrl K</span>
           </button>
           <div className="ml-auto flex items-center gap-1.5">
+            {db.mode === "live" ? (
+              <span title="Data operasional: 0 transaksi awal, semua yang tercatat adalah input Anda."
+                className="hidden items-center gap-1.5 rounded-full border border-ok/30 bg-ok-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-ok sm:flex">
+                <span className="h-1.5 w-1.5 rounded-full bg-ok" /> Operasional
+              </span>
+            ) : (
+              <button title="Data contoh aktif — klik untuk beralih ke data kosong / operasional."
+                onClick={() => user?.role === "admin" ? setResetModal("empty") : toast.push({ title: "Data contoh aktif", desc: "Minta Administrator untuk beralih ke mode operasional.", kind: "info" })}
+                className="hidden items-center gap-1.5 rounded-full border border-warn/30 bg-warn-soft px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-warn transition-transform hover:scale-[1.03] sm:flex">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-warn" /> Data Contoh
+              </button>
+            )}
             <span className="mr-1 hidden text-[12px] font-semibold text-muted md:block">{fmtDate(Date.now())}</span>
             {/* notifications */}
             <div className="relative">
@@ -218,10 +233,16 @@ export function Shell({ children }: { children: React.ReactNode }) {
                     <p className="text-[11px] text-muted">@{user?.username} · {user && ROLE_META[user.role].label}</p>
                   </div>
                   {user?.role === "admin" && (
-                    <button onClick={() => { resetDemo(); setMenuOpen(false); toast.push({ title: "Data demo direset", desc: "Seluruh data dikembalikan ke data contoh awal.", kind: "info" }); }}
-                      className="flex w-full items-center gap-2.5 px-4 py-2.5 text-[12.5px] font-semibold text-muted transition-colors hover:bg-surface2 hover:text-ink">
-                      <RotateCcw size={14} /> Reset data demo
-                    </button>
+                    <>
+                      <button onClick={() => { setResetModal("empty"); setMenuOpen(false); }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-[12.5px] font-semibold text-muted transition-colors hover:bg-surface2 hover:text-ink">
+                        <FlaskConical size={14} /> Kosongkan semua data
+                      </button>
+                      <button onClick={() => { setResetModal("demo"); setMenuOpen(false); }}
+                        className="flex w-full items-center gap-2.5 px-4 py-2.5 text-[12.5px] font-semibold text-muted transition-colors hover:bg-surface2 hover:text-ink">
+                        <RotateCcw size={14} /> Muat ulang data contoh
+                      </button>
+                    </>
                   )}
                   <button onClick={logout} className="flex w-full items-center gap-2.5 px-4 py-2.5 text-[12.5px] font-semibold text-danger transition-colors hover:bg-danger-soft">
                     <LogOut size={14} /> Keluar
@@ -237,6 +258,47 @@ export function Shell({ children }: { children: React.ReactNode }) {
       </div>
 
       <GlobalSearch open={searchOpen} onClose={() => setSearchOpen(false)} />
+
+      {/* ---------- modal reset data ---------- */}
+      {resetModal && (
+        <Modal open onClose={() => setResetModal(null)}
+          title={resetModal === "empty" ? "Kosongkan Semua Data" : "Muat Ulang Data Contoh"}
+          footer={<>
+            <Btn variant="ghost" onClick={() => setResetModal(null)}>Batal</Btn>
+            {resetModal === "empty" ? (
+              <Btn variant="danger" onClick={() => { initData("empty", resetCash); setResetModal(null); toast.push({ title: "Data dikosongkan", desc: "0 transaksi, 0 pelanggan. Silakan login ulang (admin / admin123).", kind: "warn" }); }}>
+                Ya, Kosongkan Semua
+              </Btn>
+            ) : (
+              <Btn onClick={() => { resetDemo(); setResetModal(null); toast.push({ title: "Data contoh dimuat ulang", desc: "Seluruh data dikembalikan ke contoh awal.", kind: "info" }); }}>
+                Ya, Muat Data Contoh
+              </Btn>
+            )}
+          </>}>
+          {resetModal === "empty" ? (
+            <div className="space-y-3.5">
+              <p className="flex items-start gap-2.5 rounded-lg border border-danger/30 bg-danger-soft px-3 py-2.5 text-[12.5px] font-semibold text-danger">
+                <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+                Seluruh pesanan, pelanggan, pembayaran, pengeluaran, stok, dan jurnal akan dihapus permanen dari perangkat ini. Tindakan ini tidak bisa dibatalkan.
+              </p>
+              <p className="text-[12.5px] leading-relaxed text-muted">
+                Yang tetap tersedia: katalog 30 produk & jasa, daftar bahan baku (stok 0), bagan akun, dan akun <b>admin</b>.
+              </p>
+              <Field label="Saldo kas awal (opsional)">
+                <Input type="number" min={0} step={50000} value={resetCash || ""} placeholder="0" onChange={(e) => setResetCash(Math.max(0, Number(e.target.value) || 0))} />
+              </Field>
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              <p className="flex items-start gap-2.5 rounded-lg border border-line bg-surface2 px-3 py-2.5 text-[12.5px] text-muted">
+                <Database size={16} className="mt-0.5 shrink-0 text-brand" />
+                Data saat ini akan diganti dengan data contoh: 20 pelanggan, 24 pesanan, pembayaran, pengeluaran, dan jurnal 6 bulan terakhir.
+              </p>
+              <p className="text-[12.5px] text-muted">Akun demo (admin, kasir, produksi, desainer) akan tersedia kembali. Anda akan keluar dan login ulang.</p>
+            </div>
+          )}
+        </Modal>
+      )}
     </div>
   );
 }

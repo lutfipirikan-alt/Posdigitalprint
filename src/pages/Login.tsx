@@ -13,7 +13,7 @@ const DEMO = [
 ];
 
 export default function Login() {
-  const { login } = useStore();
+  const { login, db } = useStore();
   const [username, setUsername] = useState("");
   const [pass, setPass] = useState("");
   const [err, setErr] = useState<string | null>(null);
@@ -88,17 +88,23 @@ export default function Login() {
             </p>
           </form>
 
-          <div className="mt-5">
-            <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-faint">Akun demo — klik untuk masuk</p>
-            <div className="flex flex-wrap justify-center gap-1.5">
-              {DEMO.map((d) => (
-                <button key={d.u} onClick={() => { setUsername(d.u); setPass(d.p); setErr(null); setTimeout(() => { const r = login(d.u, d.p); if (r) setErr(r); }, 60); }}
-                  className="group rounded-lg border border-line bg-surface px-3 py-1.5 text-[12px] font-semibold text-muted transition-all hover:border-brand hover:text-brand">
-                  {ROLE_META[d.role].label} <span className="text-faint group-hover:text-brand/60">@{d.u}</span>
-                </button>
-              ))}
+          {db.users.length > 1 ? (
+            <div className="mt-5">
+              <p className="mb-2 text-center text-[11px] font-bold uppercase tracking-wider text-faint">Akun demo — klik untuk masuk</p>
+              <div className="flex flex-wrap justify-center gap-1.5">
+                {DEMO.map((d) => (
+                  <button key={d.u} onClick={() => { setUsername(d.u); setPass(d.p); setErr(null); setTimeout(() => { const r = login(d.u, d.p); if (r) setErr(r); }, 60); }}
+                    className="group rounded-lg border border-line bg-surface px-3 py-1.5 text-[12px] font-semibold text-muted transition-all hover:border-brand hover:text-brand">
+                    {ROLE_META[d.role].label} <span className="text-faint group-hover:text-brand/60">@{d.u}</span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            <p className="mt-5 text-center text-[11.5px] leading-relaxed text-faint">
+              Mode data kosong aktif — masuk sebagai <b className="text-muted">admin</b> / <b className="text-muted">admin123</b>,<br />lalu tambahkan karyawan di menu Karyawan.
+            </p>
+          )}
         </div>
       </div>
     </div>

@@ -4,18 +4,23 @@ import type {
   Page, PayMethod, Product, Purchase, PurchaseItem, Supplier, User,
 } from "./types";
 import { STATUS_META } from "./types";
-import { buildSeed } from "./seed";
+import { buildSeed, buildEmpty } from "./seed";
 import { hashPass, uid, dayKey } from "./format";
+import { safeGet, safeSet, safeRemove } from "./storage";
 
-const DB_KEY = "saniprint-db-v3";
+const DB_KEY = "saniprint-db-v4";
 const SES_KEY = "saniprint-session";
+export const SETUP_KEY = "saniprint-setup-v2";
 
 function loadDB(): DB {
   try {
-    const raw = localStorage.getItem(DB_KEY);
+    const raw = safeGet(DB_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DB;
-      if (parsed.version === 3) return parsed;
+      if (parsed.version === 4) {
+        safeSet(SETUP_KEY, "1");
+        return parsed;
+      }
     }
   } catch { /* seed ulang */ }
   return buildSeed();
@@ -81,7 +86,7 @@ export function notifsOf(db: DB): Notif[] {
     }
   });
   db.inventory.forEach((m) => {
-    if (m.stock <= m.minStock) {
+    if (m.minStock > 0 && m.stock <= m.minStock) {
       out.push({ id: "low-" + m.id, kind: "warn", title: "Stok bahan menipis", body: `${m.name} · sisa ${m.stock} ${m.unit} (min ${m.minStock})`, page: "inventory", refId: m.id, ts: now });
     }
   });
@@ -107,6 +112,7 @@ interface StoreCtx {
   login: (username: string, pass: string) => string | null;
   logout: () => void;
   resetDemo: () => void;
+  initData: (mode: "demo" | "empty", startCash?: number) => void;
   createOrder: (input: CreateOrderInput) => Order;
   recordPayment: (orderId: string, amount: number, method: PayMethod, ref?: string) => void;
   setStatus: (orderId: string, to: OrderStatus, note?: string) => void;
@@ -165,14 +171,14 @@ function pushPayJournal(d: DB, o: Order, amount: number, method: PayMethod, date
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [db, setDb] = useState<DB>(loadDB);
-  const [userId, setUserId] = useState<string | null>(() => localStorage.getItem(SES_KEY));
+  const [userId, setUserId] = useState<string | null>(() => safeGet(SES_KEY));
   const [nav, setNav] = useState<NavState>({ page: "dashboard" });
   const [theme, setThemeState] = useState<"light" | "dark">(() => (document.documentElement.classList.contains("dark") ? "dark" : "light"));
   const ref = useRef(db);
   ref.current = db;
 
   useEffect(() => {
-    try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch { /* penuh */ }
+    safeSet(DB_KEY, JSON.stringify(db));
   }, [db]);
 
   const mutate = (fn: (d: DB) => void) => {
@@ -191,7 +197,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setTheme: (t) => {
       setThemeState(t);
       document.documentElement.classList.toggle("dark", t === "dark");
-      localStorage.setItem("sp-theme", t);
+      safeSet("sp-theme", t);
     },
     login: (username, pass) => {
       const u = ref.current.users.find((x) => x.username === username.toLowerCase().trim());
@@ -199,13 +205,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (!u.active) return "Akun dinonaktifkan";
       if (u.passHash !== hashPass(pass)) return "Password salah";
       setUserId(u.id);
-      localStorage.setItem(SES_KEY, u.id);
+      safeSet(SES_KEY, u.id);
       setNav({ page: "dashboard" });
       mutate((d) => log(d, u.id, "Login", `${u.name} masuk ke sistem`));
       return null;
     },
-    logout: () => { setUserId(null); localStorage.removeItem(SES_KEY); },
-    resetDemo: () => { setDb(buildSeed()); },
+    logout: () => { setUserId(null); safeRemove(SES_KEY); },
+    resetDemo: () => { setDb(buildSeed()); setNav({ page: "dashboard" }); },
+    initData: (mode, startCash) => {
+      setDb(mode === "demo" ? buildSeed() : buildEmpty(startCash ?? 0));
+      safeSet(SETUP_KEY, "1");
+      setUserId(null);
+      safeRemove(SES_KEY);
+      setNav({ page: "dashboard" });
+    },
 
     createOrder: (input) => {
       const d = ref.current;
@@ -383,7 +396,7 @@ export function invValue(db: DB): number {
   return db.inventory.reduce((a, m) => a + m.stock * m.cost, 0);
 }
 export function lowStock(db: DB): InventoryItem[] {
-  return db.inventory.filter((m) => m.stock <= m.minStock);
+  return db.inventory.filter((m) => m.minStock > 0 && m.stock <= m.minStock);
 }
 export function payableBalance(ap: { amount: number; payments: { amount: number }[] }): number {
   return ap.amount - ap.payments.reduce((a, b) => a + b.amount, 0);

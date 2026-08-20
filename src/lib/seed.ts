@@ -397,7 +397,8 @@ export function buildSeed(): DB {
   });
 
   return {
-    version: 3,
+    version: 4,
+    mode: "demo",
     startCash: 12_500_000,
     users, customers, suppliers, products, finishings, inventory, invTx,
     orders: orders.sort((a, b) => b.createdAt - a.createdAt),
@@ -410,6 +411,32 @@ export function buildSeed(): DB {
       { id: uid(), date: now - 10_800_000, userId: "u2", action: "Pengeluaran", detail: "Mencatat pengeluaran operasional" },
     ],
     seq: { order: orderSeq + 120, inv: orderSeq + 120, po: 24 },
+    readNotifs: [],
+  };
+}
+
+/* ---------- database kosong: siap dipakai produksi, nol transaksi ---------- */
+export function buildEmpty(startCash = 0): DB {
+  const demo = buildSeed();
+  return {
+    ...demo,
+    mode: "live",
+    startCash,
+    users: demo.users.filter((u) => u.id === "u1"), // hanya admin; karyawan lain ditambahkan sendiri
+    customers: [],
+    suppliers: [],
+    inventory: demo.inventory.map((m) => ({ ...m, stock: 0, minStock: 0 })),
+    invTx: [],
+    orders: [],
+    payments: [],
+    expenses: [],
+    purchases: [],
+    payables: [],
+    journals: [],
+    activities: [
+      { id: uid(), date: Date.now(), userId: "u1", action: "Inisialisasi", detail: "Sistem dimulai dengan data kosong (0 transaksi)" },
+    ],
+    seq: { order: 0, inv: 0, po: 0 },
     readNotifs: [],
   };
 }
