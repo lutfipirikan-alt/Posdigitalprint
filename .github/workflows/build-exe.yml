@@ -20,16 +20,46 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Dependencies
+      - name: Install Project Dependencies
         run: npm install
 
       - name: Build Web Application
         run: npm run build
 
-      - name: Setup Electron & Build Windows EXE
+      - name: Create Electron Entry Script
         run: |
-          npm install --save-dev electron electron-builder
-          npx electron-builder --win nsis portable --x64 -c.directories.output=dist-electron -c.files="dist/**/*"
+          New-Item -ItemType Directory -Force -Path electron
+          @'
+          const { app, BrowserWindow } = require('electron');
+          const path = require('path');
+          
+          function createWindow() {
+            const win = new BrowserWindow({
+              width: 1280,
+              height: 800,
+              minWidth: 1024,
+              minHeight: 600,
+              title: "POS Digital Print",
+              autoHideMenuBar: true,
+              webPreferences: {
+                nodeIntegration: false,
+                contextIsolation: true
+              }
+            });
+            win.loadFile(path.join(__dirname, 'dist', 'index.html'));
+          }
+          
+          app.whenReady().then(createWindow);
+          
+          app.on('window-all-closed', () => {
+            if (process.platform !== 'darwin') app.quit();
+          });
+          '@ | Out-File -FilePath electron/main.js -Encoding utf8
+
+      - name: Install Electron & Compile .EXE
+        run: |
+          npm install --save-dev electron@latest electron-builder@latest
+          npx electron-builder --win nsis portable --x64 -c.extraMetadata.main=electron/main.js -c.directories.output=dist-electron -c.files="dist/**/*","electron/**/*"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -38,4 +68,4 @@ jobs:
         with:
           name: POS-Digital-Print-Windows-EXE
           path: dist-electron/*.exe
-          if-no-files-found: warn
+          if-no-files-found: error
