@@ -141,6 +141,15 @@ export default function Dashboard() {
                     </TR>
                   );
                 })}
+                {db.orders.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center">
+                      <p className="text-[13px] font-bold">Belum ada pesanan — 0 tercatat</p>
+                      <p className="mt-0.5 text-[11.5px] text-muted">Penjualan pertama Anda akan muncul di sini.</p>
+                      <button onClick={() => navigate("pos")} className="mt-2.5 rounded-lg bg-brand px-3.5 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-brand-hi">Buka Kasir →</button>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -170,6 +179,14 @@ export default function Dashboard() {
                     </TR>
                   );
                 })}
+                {db.payments.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-10 text-center">
+                      <p className="text-[13px] font-bold">Belum ada pembayaran</p>
+                      <p className="mt-0.5 text-[11.5px] text-muted">Pembayaran dari kasir & pelunasan piutang tercatat di sini.</p>
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

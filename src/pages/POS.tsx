@@ -102,6 +102,16 @@ export default function POS() {
           </div>
           <SearchInput value={q} onChange={setQ} placeholder="Cari produk / SKU…  (F2)" inputRef={searchRef} className="w-64" />
         </div>
+        {db.customers.length === 0 && (
+          <button onClick={() => setCustModal(true)}
+            className="anim-in mb-3 flex w-full items-center gap-3 rounded-xl border-2 border-dashed border-brand/40 bg-brand-soft/50 px-4 py-3 text-left transition-colors hover:border-brand/70">
+            <UserPlus size={18} className="shrink-0 text-brand" />
+            <span>
+              <span className="block text-[13px] font-bold text-brand">Belum ada pelanggan — 0 tercatat</span>
+              <span className="block text-[11.5px] text-muted">Klik di sini untuk menambahkan pelanggan pertama Anda (butuh ±10 detik).</span>
+            </span>
+          </button>
+        )}
         <div className="mb-3 flex flex-wrap gap-1.5">
           {cats.map((c) => (
             <button key={c} onClick={() => setCat(c)}

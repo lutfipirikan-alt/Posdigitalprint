@@ -413,3 +413,28 @@ export function buildSeed(): DB {
     readNotifs: [],
   };
 }
+
+/* ---------- database kosong: siap dipakai produksi, nol transaksi ---------- */
+export function buildEmpty(startCash = 0): DB {
+  const demo = buildSeed();
+  return {
+    ...demo,
+    startCash,
+    users: demo.users.filter((u) => u.id === "u1"), // hanya admin; karyawan lain ditambahkan sendiri
+    customers: [],
+    suppliers: [],
+    inventory: demo.inventory.map((m) => ({ ...m, stock: 0, minStock: 0 })),
+    invTx: [],
+    orders: [],
+    payments: [],
+    expenses: [],
+    purchases: [],
+    payables: [],
+    journals: [],
+    activities: [
+      { id: uid(), date: Date.now(), userId: "u1", action: "Inisialisasi", detail: "Sistem dimulai dengan data kosong (0 transaksi)" },
+    ],
+    seq: { order: 0, inv: 0, po: 0 },
+    readNotifs: [],
+  };
+}

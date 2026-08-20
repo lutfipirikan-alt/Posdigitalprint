@@ -1,7 +1,8 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { StoreProvider, useStore } from "./lib/store";
 import { ToastProvider } from "./components/ui";
 import { initPWA } from "./lib/pwa";
+import Setup from "./pages/Setup";
 import { Shell } from "./components/layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -20,6 +21,8 @@ import People from "./pages/People";
 
 function Router() {
   const { user, nav } = useStore();
+  const [firstRun, setFirstRun] = useState(() => !localStorage.getItem("saniprint-setup"));
+  if (firstRun) return <Setup onDone={() => setFirstRun(false)} />;
   if (!user) return <Login />;
   const page = (() => {
     switch (nav.page) {

@@ -4,7 +4,7 @@ import type {
   Page, PayMethod, Product, Purchase, PurchaseItem, Supplier, User,
 } from "./types";
 import { STATUS_META } from "./types";
-import { buildSeed } from "./seed";
+import { buildSeed, buildEmpty } from "./seed";
 import { hashPass, uid, dayKey } from "./format";
 
 const DB_KEY = "saniprint-db-v3";
@@ -15,7 +15,10 @@ function loadDB(): DB {
     const raw = localStorage.getItem(DB_KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DB;
-      if (parsed.version === 3) return parsed;
+      if (parsed.version === 3) {
+        localStorage.setItem("saniprint-setup", "1"); // pengguna lama: lewati onboarding
+        return parsed;
+      }
     }
   } catch { /* seed ulang */ }
   return buildSeed();
@@ -81,7 +84,7 @@ export function notifsOf(db: DB): Notif[] {
     }
   });
   db.inventory.forEach((m) => {
-    if (m.stock <= m.minStock) {
+    if (m.minStock > 0 && m.stock <= m.minStock) {
       out.push({ id: "low-" + m.id, kind: "warn", title: "Stok bahan menipis", body: `${m.name} · sisa ${m.stock} ${m.unit} (min ${m.minStock})`, page: "inventory", refId: m.id, ts: now });
     }
   });
@@ -107,6 +110,7 @@ interface StoreCtx {
   login: (username: string, pass: string) => string | null;
   logout: () => void;
   resetDemo: () => void;
+  initData: (mode: "demo" | "empty", startCash?: number) => void;
   createOrder: (input: CreateOrderInput) => Order;
   recordPayment: (orderId: string, amount: number, method: PayMethod, ref?: string) => void;
   setStatus: (orderId: string, to: OrderStatus, note?: string) => void;
@@ -205,7 +209,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       return null;
     },
     logout: () => { setUserId(null); localStorage.removeItem(SES_KEY); },
-    resetDemo: () => { setDb(buildSeed()); },
+    resetDemo: () => { setDb(buildSeed()); setNav({ page: "dashboard" }); },
+    initData: (mode, startCash) => {
+      setDb(mode === "demo" ? buildSeed() : buildEmpty(startCash ?? 0));
+      localStorage.setItem("saniprint-setup", "1");
+      setUserId(null);
+      localStorage.removeItem(SES_KEY);
+      setNav({ page: "dashboard" });
+    },
 
     createOrder: (input) => {
       const d = ref.current;
@@ -383,7 +394,7 @@ export function invValue(db: DB): number {
   return db.inventory.reduce((a, m) => a + m.stock * m.cost, 0);
 }
 export function lowStock(db: DB): InventoryItem[] {
-  return db.inventory.filter((m) => m.stock <= m.minStock);
+  return db.inventory.filter((m) => m.minStock > 0 && m.stock <= m.minStock);
 }
 export function payableBalance(ap: { amount: number; payments: { amount: number }[] }): number {
   return ap.amount - ap.payments.reduce((a, b) => a + b.amount, 0);

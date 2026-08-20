@@ -48,7 +48,8 @@ export default function Inventory() {
             <THead cols={["SKU", "Bahan", "Kategori", "Stok", "Min", "Harga Beli", "Nilai", "Supplier", "Status", ""]} />
             <tbody>
               {rows.map((m) => {
-                const isLow = m.stock <= m.minStock;
+                const isLow = m.minStock > 0 && m.stock <= m.minStock;
+                const near = m.minStock > 0 && m.stock <= m.minStock * 1.5;
                 const sup = db.suppliers.find((sp) => sp.id === m.supplierId);
                 return (
                   <TR key={m.id} onClick={() => setOpenId(m.id)}>
@@ -60,7 +61,7 @@ export default function Inventory() {
                     <TD className="tabular text-muted">{fmtIDR(m.cost)}</TD>
                     <TD className="tabular font-semibold">{fmtIDR(m.stock * m.cost)}</TD>
                     <TD className="max-w-[150px] truncate text-muted">{sup?.name || "—"}</TD>
-                    <TD>{isLow ? <Chip color="#d33131" pulse>Stok Menipis</Chip> : m.stock <= m.minStock * 1.5 ? <Chip color="#b45309">Hampir Habis</Chip> : <Chip color="#178a4c">Aman</Chip>}</TD>
+                    <TD>{isLow ? <Chip color="#d33131" pulse>Stok Menipis</Chip> : near ? <Chip color="#b45309">Hampir Habis</Chip> : m.minStock === 0 ? <Chip color="#64748b">Belum Diatur</Chip> : <Chip color="#178a4c">Aman</Chip>}</TD>
                     <TD>
                       <div className="flex gap-1">
                         <button title="Stok masuk" onClick={(e) => { e.stopPropagation(); setMove({ item: m, type: "in" }); }} className="rounded-md p-1.5 text-muted hover:bg-ok-soft hover:text-ok"><ArrowDownToLine size={14} /></button>
